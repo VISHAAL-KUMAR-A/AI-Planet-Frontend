@@ -57,18 +57,24 @@ export const queryAPI = {
   getByWorkflowId: (workflowId) => api.get(`/api/queries?workflow_id=${workflowId}`),
 };
 
-// Workflow execution API functions (NEW - Main functionality)
+// Workflow execution API functions (ENHANCED)
 export const workflowAPI = {
-  // Execute a workflow with a query
+  // Execute a workflow with a query (basic)
   execute: (data) => api.post('/api/workflows/execute', data),
   
-  // Create a new workflow
+  // Execute a workflow with enhanced feedback
+  executeEnhanced: (data) => api.post('/api/workflows/execute/enhanced', data),
+  
+  // Create a new workflow (basic)
   create: (data) => api.post('/api/workflows', data),
+  
+  // Create a new enhanced workflow with nodes/edges
+  createEnhanced: (data) => api.post('/api/workflows/enhanced', data),
   
   // Get all workflows
   getAll: () => api.get('/api/workflows'),
   
-  // Get workflow by ID
+  // Get workflow by ID (enhanced with nodes/edges)
   getById: (id) => api.get(`/api/workflows/${id}`),
   
   // Update workflow
@@ -127,6 +133,28 @@ export const componentAPI = {
     update: (id, data) => api.put(`/api/components/output/${id}`, data),
     delete: (id) => api.delete(`/api/components/output/${id}`),
   },
+};
+
+// Component validation API functions (NEW)
+export const componentValidationAPI = {
+  // Validate component configuration
+  validate: (data) => api.post('/api/components/validate', data),
+};
+
+// Document management API functions (NEW)
+export const documentAPI = {
+  // Upload document for Knowledge Base component
+  upload: (componentId, formData) => api.post(`/api/documents/upload?component_id=${componentId}`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  }),
+  
+  // Get document status
+  getStatus: (documentId) => api.get(`/api/documents/${documentId}/status`),
+  
+  // Get all documents for a component
+  getByComponent: (componentId) => api.get(`/api/documents?component_id=${componentId}`),
 };
 
 // Legacy alias for backward compatibility

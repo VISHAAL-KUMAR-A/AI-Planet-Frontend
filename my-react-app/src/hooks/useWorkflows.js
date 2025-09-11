@@ -70,6 +70,45 @@ export const useWorkflows = () => {
     }
   }, []);
 
+  // Create an enhanced workflow with nodes and edges
+  const createEnhancedWorkflow = useCallback(async (workflowData) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await workflowAPI.createEnhanced(workflowData);
+      const newWorkflow = response.data;
+      setWorkflows(prev => [newWorkflow, ...prev]);
+      toast.success('Enhanced workflow created successfully');
+      return newWorkflow;
+    } catch (err) {
+      const errorMessage = err.response?.data?.detail || err.message || 'Failed to create enhanced workflow';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Execute workflow with enhanced feedback
+  const executeEnhancedWorkflow = useCallback(async (executionData) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await workflowAPI.executeEnhanced(executionData);
+      const execution = response.data;
+      toast.success('Workflow executed successfully');
+      return execution;
+    } catch (err) {
+      const errorMessage = err.response?.data?.detail || err.message || 'Failed to execute workflow';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Get all workflows
   const getAllWorkflows = useCallback(async () => {
     setLoading(true);
@@ -180,6 +219,8 @@ export const useWorkflows = () => {
     executeWorkflow,
     sendChatMessage,
     createWorkflow,
+    createEnhancedWorkflow,
+    executeEnhancedWorkflow,
     getAllWorkflows,
     getWorkflowById,
     updateWorkflow,
