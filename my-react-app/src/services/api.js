@@ -37,25 +37,9 @@ api.interceptors.response.use(
   }
 );
 
-// User Query Component API functions
-export const userQueryComponentAPI = {
-  // Get all user query components
-  getAll: () => api.get('/api/components/user-query'),
-  
-  // Get specific user query component
-  getById: (id) => api.get(`/api/components/user-query/${id}`),
-  
-  // Create new user query component
-  create: (data) => api.post('/api/components/user-query', data),
-  
-  // Update user query component
-  update: (id, data) => api.put(`/api/components/user-query/${id}`, data),
-  
-  // Delete user query component
-  delete: (id) => api.delete(`/api/components/user-query/${id}`),
-};
+// User Query Component API functions (moved to componentAPI.userQuery below)
 
-// Query execution API functions
+// Query execution API functions (legacy - keeping for backward compatibility)
 export const queryAPI = {
   // Execute a query
   execute: (data) => api.post('/api/queries', data),
@@ -72,6 +56,81 @@ export const queryAPI = {
   // Get queries by workflow ID
   getByWorkflowId: (workflowId) => api.get(`/api/queries?workflow_id=${workflowId}`),
 };
+
+// Workflow execution API functions (NEW - Main functionality)
+export const workflowAPI = {
+  // Execute a workflow with a query
+  execute: (data) => api.post('/api/workflows/execute', data),
+  
+  // Create a new workflow
+  create: (data) => api.post('/api/workflows', data),
+  
+  // Get all workflows
+  getAll: () => api.get('/api/workflows'),
+  
+  // Get workflow by ID
+  getById: (id) => api.get(`/api/workflows/${id}`),
+  
+  // Update workflow
+  update: (id, data) => api.put(`/api/workflows/${id}`, data),
+  
+  // Delete workflow
+  delete: (id) => api.delete(`/api/workflows/${id}`),
+  
+  // Validate workflow
+  validate: (id) => api.post(`/api/workflows/${id}/validate`),
+};
+
+// Chat interface API functions (NEW)
+export const chatAPI = {
+  // Send chat message through workflow
+  query: (data) => api.post('/api/chat/query', data),
+};
+
+// Component management API functions (UPDATED - All component types)
+export const componentAPI = {
+  // Get all components (optionally filtered by type)
+  getAll: (type = null) => api.get(`/api/components${type ? `?type=${type}` : ''}`),
+  
+  // User Query Components
+  userQuery: {
+    getAll: () => api.get('/api/components/user-query'),
+    getById: (id) => api.get(`/api/components/user-query/${id}`),
+    create: (data) => api.post('/api/components/user-query', data),
+    update: (id, data) => api.put(`/api/components/user-query/${id}`, data),
+    delete: (id) => api.delete(`/api/components/user-query/${id}`),
+  },
+  
+  // Knowledge Base Components
+  knowledgeBase: {
+    getAll: () => api.get('/api/components/knowledge-base'),
+    getById: (id) => api.get(`/api/components/knowledge-base/${id}`),
+    create: (data) => api.post('/api/components/knowledge-base', data),
+    update: (id, data) => api.put(`/api/components/knowledge-base/${id}`, data),
+    delete: (id) => api.delete(`/api/components/knowledge-base/${id}`),
+  },
+  
+  // LLM Engine Components
+  llmEngine: {
+    getAll: () => api.get('/api/components/llm-engine'),
+    getById: (id) => api.get(`/api/components/llm-engine/${id}`),
+    create: (data) => api.post('/api/components/llm-engine', data),
+    update: (id, data) => api.put(`/api/components/llm-engine/${id}`, data),
+    delete: (id) => api.delete(`/api/components/llm-engine/${id}`),
+  },
+  
+  // Output Components
+  output: {
+    getAll: () => api.get('/api/components/output'),
+    getById: (id) => api.get(`/api/components/output/${id}`),
+    create: (data) => api.post('/api/components/output', data),
+    update: (id, data) => api.put(`/api/components/output/${id}`, data),
+    delete: (id) => api.delete(`/api/components/output/${id}`),
+  },
+};
+
+// Legacy alias for backward compatibility
+export const userQueryComponentAPI = componentAPI.userQuery;
 
 // Health check
 export const healthAPI = {

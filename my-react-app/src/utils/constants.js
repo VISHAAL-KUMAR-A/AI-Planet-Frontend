@@ -38,3 +38,26 @@ export const UI_CONSTANTS = {
   MAX_QUERY_LENGTH: 2000,
   DEBOUNCE_DELAY: 300,
 };
+
+// Predefined Workflows (from backend)
+export const PREDEFINED_WORKFLOWS = {
+  SIMPLE_QA: {
+    id: '14e209b1-d48e-4f8e-9512-a212914b8474',
+    name: 'Simple Q&A Workflow',
+    description: 'Basic question answering with LLM',
+    type: 'qa',
+  },
+  FULL_RAG: {
+    id: '74939cac-9283-4744-845f-2f3321cdef09',
+    name: 'Full RAG Workflow',
+    description: 'Advanced retrieval-augmented generation with knowledge base',
+    type: 'rag',
+  },
+};
+
+// Workflow types
+export const WORKFLOW_TYPES = {
+  QA: 'qa',
+  RAG: 'rag',
+  CUSTOM: 'custom',
+};

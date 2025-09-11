@@ -3,13 +3,13 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Bot, User, Clock, CheckCircle, XCircle, Loader2, X } from 'lucide-react';
 import { formatDateTime, getStatusBadgeColor } from '../../utils/formatters';
-import { useQueries } from '../../hooks/useQueries';
+import { useWorkflows } from '../../hooks/useWorkflows';
 
-const ChatInterface = ({ component, isOpen, onClose }) => {
+const ChatInterface = ({ workflow, isOpen, onClose }) => {
   const [message, setMessage] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
   const messagesEndRef = useRef(null);
-  const { executeQuery, loading } = useQueries();
+  const { executeWorkflow, loading } = useWorkflows();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -34,33 +34,29 @@ const ChatInterface = ({ component, isOpen, onClose }) => {
     setMessage('');
 
     try {
-      const queryData = {
-        query: message,
-        component_id: component.id,
-        workflow_id: null,
-        context: {
-          user_type: 'user',
-          priority: 'medium',
-        },
-      };
-
-      const result = await executeQuery(queryData);
+      // Execute through workflow (uses /api/workflows/execute)
+      if (!workflow || !workflow.id) {
+        throw new Error('No workflow provided for execution');
+      }
+      
+      const result = await executeWorkflow(workflow.id, message);
 
       const botResponse = {
-        id: result.id,
+        id: result.execution_id || result.id || Date.now(),
         type: 'bot',
-        content: result.result?.message || 'Query processed successfully',
-        timestamp: result.processed_at || new Date().toISOString(),
+        content: result.result?.response || result.response || result.result?.message || 'Query processed successfully',
+        timestamp: result.executed_at || result.processed_at || new Date().toISOString(),
         status: result.status,
         queryData: result,
+        executionSteps: result.execution_steps || null,
       };
 
       setChatHistory(prev => [...prev, botResponse]);
-    } catch {
+    } catch (error) {
       const errorResponse = {
         id: Date.now() + 1,
         type: 'bot',
-        content: 'Sorry, there was an error processing your query. Please try again.',
+        content: error.message || 'Sorry, there was an error processing your query. Please try again.',
         timestamp: new Date().toISOString(),
         status: 'failed',
         error: true,
@@ -101,8 +97,12 @@ const ChatInterface = ({ component, isOpen, onClose }) => {
               <Bot className="w-5 h-5 text-primary-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Chat with {component.name}</h2>
-              <p className="text-sm text-gray-500">Ask questions to test your component</p>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Chat with {workflow?.name || 'AI Assistant'}
+              </h2>
+              <p className="text-sm text-gray-500">
+                Ask questions to test your workflow
+              </p>
             </div>
           </div>
           <motion.button
@@ -174,10 +174,31 @@ const ChatInterface = ({ component, isOpen, onClose }) => {
                               {msg.status}
                             </span>
                           </div>
-                          {msg.queryData.processed_at && (
+                          {(msg.queryData.processed_at || msg.queryData.executed_at) && (
                             <div className="flex items-center justify-between text-xs">
                               <span className="text-gray-500">Processed:</span>
-                              <span className="text-gray-600">{formatDateTime(msg.queryData.processed_at)}</span>
+                              <span className="text-gray-600">
+                                {formatDateTime(msg.queryData.processed_at || msg.queryData.executed_at)}
+                              </span>
+                            </div>
+                          )}
+                          {msg.executionSteps && msg.executionSteps.length > 0 && (
+                            <div className="text-xs">
+                              <span className="text-gray-500">Components executed:</span>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {msg.executionSteps.map((step, index) => (
+                                  <span 
+                                    key={index}
+                                    className={`px-2 py-1 rounded text-xs ${
+                                      step.success 
+                                        ? 'bg-green-100 text-green-700' 
+                                        : 'bg-red-100 text-red-700'
+                                    }`}
+                                  >
+                                    {step.component_type}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
                           )}
                         </div>
@@ -230,8 +251,11 @@ const ChatInterface = ({ component, isOpen, onClose }) => {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder={component.placeholder_text || 'Type your question here...'}
-                maxLength={component.max_length}
+                placeholder={
+                  workflow?.description || 
+                  'Type your question here...'
+                }
+                maxLength={1000}
                 rows={1}
                 className="textarea-field resize-none"
                 style={{ minHeight: '44px', maxHeight: '120px' }}
@@ -242,7 +266,7 @@ const ChatInterface = ({ component, isOpen, onClose }) => {
                   Press Enter to send, Shift+Enter for new line
                 </span>
                 <span className="text-xs text-gray-500">
-                  {message.length}/{component.max_length}
+                  {message.length}/1000
                 </span>
               </div>
             </div>
